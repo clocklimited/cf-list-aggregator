@@ -137,7 +137,7 @@ describe('List aggregator (for an auto list)', function () {
       })
   })
 
-  it('should return related sections', function (done) {
+  it('should return articles that have the specified section(s) as related sections', function (done) {
 
     var articles = []
       , listId
