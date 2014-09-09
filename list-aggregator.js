@@ -1,15 +1,13 @@
 module.exports = createAggregator
 
-var createRecursiveSectionizer = require('cf-sectionizer/recursive-sectionizer')
-  , _ = require('lodash')
+var _ = require('lodash')
   , async = require('async')
-  , sectionizer = require('cf-sectionizer/sectionizer')
   , createListAggregator = require('./lib/aggregator')
+  , extrapolateSectionIds = require('cf-section-extrapolator')
 
 function createAggregator(listService, sectionService, crudService, options) {
 
-  var recursiveSectionizer = createRecursiveSectionizer(sectionService)
-    , aggregateList = createListAggregator(crudService, options)
+  var aggregateList = createListAggregator(crudService, options)
 
   /*
    * Runs the list aggregator over a number of lists
@@ -34,11 +32,16 @@ function createAggregator(listService, sectionService, crudService, options) {
         if (err) return cb(err)
         if (!list) return cb(null, [])
 
-        recursiveSectionizer(list, section, function(err, sectionizedList) {
+        if (!Array.isArray(list.sections)) list.sections = []
 
-          sectionizedList = sectionizer(sectionizedList, section)
+        extrapolateSectionIds(sectionService, section._id, list.sections, function (err, ids) {
 
-          aggregateList(sectionizedList, function (err, listArticles) {
+          if (err) return cb(err)
+
+          // Swap out list.sections for the list of actual section ids
+          list.sections = ids
+
+          aggregateList(list, function (err, listArticles) {
             if (err) return cb(err)
             cb(null, listArticles)
           })

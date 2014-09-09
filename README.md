@@ -2,6 +2,23 @@
 
 Compiles lists of content base on defined filtering and ordering.
 
+**Notice:** at version 1.0.0 the format for `list.sections` changed to account for functionality
+to include sub-sections. Pre v1.0.0 the format was:
+
+```js
+list.sections = [ 'id1', 'id2', 'id3' ]
+```
+
+This has changed to:
+
+```js
+list.sections =
+  [ { id: 'id1', includeSubSections: true }
+  , { id: 'id2', includeSubSections: false }
+  , { id: 'id3', includeSubSections: true }
+  ]
+```
+
 ## Installation
 
       npm install cf-list-aggregator
