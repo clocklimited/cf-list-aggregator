@@ -70,7 +70,7 @@ describe('List aggregator fields option', function () {
           results.forEach(function (result) {
             // _id is always returned from mongo
             Object.keys(result).length.should.equal(2)
-            Object.keys(result)[0].should.equal('longTitle')
+            Object.keys(result)[1].should.equal('longTitle')
           })
           done()
         })
@@ -110,7 +110,7 @@ describe('List aggregator fields option', function () {
           results.forEach(function (result) {
             // _id is always returned from mongo
             Object.keys(result).length.should.equal(3)
-            Object.keys(result)[0].should.equal('longTitle')
+            Object.keys(result)[1].should.equal('longTitle')
           })
           done()
         })
