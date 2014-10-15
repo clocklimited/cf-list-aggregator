@@ -2,7 +2,7 @@
   "author": "Paul Serby <paul.serby@clock.co.uk>",
   "name": "cf-list-aggregator",
   "description": "Compiles lists of content base on defined filtering and ordering",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "tags": [],
   "repository": {
     "type": "git",
@@ -23,10 +23,10 @@
     "node": ">=0.10"
   },
   "dependencies": {
-    "lodash": "~2.2.1",
     "async": "~0.2.9",
+    "cf-section-extrapolator": "0.0.1",
     "cf-visibility-check": "~0",
-    "cf-sectionizer": "~0"
+    "lodash": "~2.2.1"
   },
   "devDependencies": {
     "mocha": "~1",

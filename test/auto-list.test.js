@@ -99,42 +99,48 @@ describe('List aggregator (for an auto list)', function () {
       , sectionService = createSectionService()
       , articleService = createArticleService()
 
-    async.series(
-      [ publishedArticleMaker(articleService, articles, { section: '3' })
-      , publishedArticleMaker.createArticles(3, articleService, articles, { section: '4' })
-      , publishedArticleMaker.createArticles(2, articleService, [])
-      , draftArticleMaker(articleService)
-      , publishedArticleMaker(articleService, [], { section: '5' })
-      , function (cb) {
-          listService.create(
-            { type: 'auto'
-            , name: 'test list'
-            , order: 'recent'
-            , sections: [ '3', '4' ]
-            , limit: 100
-            }
-            , function (err, res) {
-                listId = res._id
-                cb(null)
-              })
-        }
-      ], function (err) {
-        if (err) throw err
+    sectionService.find({}, function (err, sections) {
+      if (err) return done(err)
+      async.series(
+        [ publishedArticleMaker(articleService, articles, { section: sections[0]._id })
+        , publishedArticleMaker.createArticles(3, articleService, articles, { section: sections[1]._id })
+        , publishedArticleMaker.createArticles(2, articleService, [])
+        , draftArticleMaker(articleService)
+        , publishedArticleMaker(articleService, [], { section: sections[2]._id })
+        , function (cb) {
+            listService.create(
+              { type: 'auto'
+              , name: 'test list'
+              , order: 'recent'
+              , sections: [ { id: sections[0]._id }, { id: sections[1]._id } ]
+              , limit: 100
+              }
+              , function (err, res) {
+                  if (err) return done(err)
+                  listId = res._id
+                  cb(null)
+                })
+          }
+        ], function (err) {
+          if (err) throw err
 
-        var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
+          var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
 
-        aggregate(listId, null, null, section, function (err, results) {
-          should.not.exist(err)
-          results.should.have.length(4)
-          results.forEach(function (result, i) {
-            eql(returnedArticle(
-              { _id: articles[i].articleId, displayDate: result.displayDate })
-              , result, false, true)
+          aggregate(listId, null, null, section, function (err, results) {
+            should.not.exist(err)
+            results.should.have.length(4)
+            results.forEach(function (result, i) {
+              eql(returnedArticle(
+                { _id: articles[i].articleId, displayDate: result.displayDate })
+                , result, false, true)
+            })
+            done()
           })
-          done()
+
         })
 
-      })
+    })
+
   })
 
   it ('should return articles of a particular type', function(done) {

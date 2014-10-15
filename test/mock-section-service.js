@@ -17,6 +17,8 @@ module.exports = function(saveEngine) {
     var sectionSave = save('section', { engine: saveEngine, debug: false, logger: logger })
     , service = crudService('section', sectionSave, schema)
 
+    service.findPublic = service.find
+
     return service
   }
 }
