@@ -32,8 +32,8 @@ after(dbConnect.disconnect)
 
 // Each test gets a new article service
 beforeEach(function() {
-  createArticleService = require('./mock-article-service')
-  (saveMongodb(dbConnection.collection('article' + Date.now())))
+  createArticleService = require('./mock-article-service')(
+    saveMongodb(dbConnection.collection('article' + Date.now())))
 })
 
 describe('List aggregator fields option', function () {
@@ -70,7 +70,8 @@ describe('List aggregator fields option', function () {
           results.forEach(function (result) {
             // _id is always returned from mongo
             Object.keys(result).length.should.equal(2)
-            Object.keys(result)[0].should.equal('longTitle')
+            var containsId = Object.keys(result).indexOf('_id') > -1
+            containsId.should.equal(true)
           })
           done()
         })
@@ -110,7 +111,8 @@ describe('List aggregator fields option', function () {
           results.forEach(function (result) {
             // _id is always returned from mongo
             Object.keys(result).length.should.equal(3)
-            Object.keys(result)[0].should.equal('longTitle')
+            var containsId = Object.keys(result).indexOf('_id') > -1
+            containsId.should.equal(true)
           })
           done()
         })
