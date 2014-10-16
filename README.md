@@ -64,7 +64,7 @@ var aggregate = createAggregator(listService, sectionService, articleService, { 
 If your application needs to modify the queries that the list aggregator makes (need a custom sort function for automatic lists? override prepareAutoQuery) then override these functions.
 
 Just pass in either `prepareAutoQuery` or `prepareManualQuery` as options to the list aggregator.
-The method expected input and output for these functions is:
+The expected input and output for these functions is:
 
 e.g
 
