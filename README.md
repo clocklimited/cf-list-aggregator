@@ -59,6 +59,27 @@ Example:
 var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger, fields: { longTitle: 1 } })
 ```
 
+### Overriding prepareAutoQuery and prepareManualQuery
+
+If your application needs to modify the queries that the list aggregator makes (need a custom sort function for automatic lists? override prepareAutoQuery) then override these functions.
+
+Just pass in either `prepareAutoQuery` or `prepareManualQuery` as options to the list aggregator.
+The expected input and output for these functions is:
+
+e.g
+
+```
+function prepareAutoQuery(list) {
+  return { options: {}, query: {} }
+}
+```
+
+```
+function prepareManualQuery(list, IdType) {
+  return { options: {}, query: {} }
+}
+```
+
 ## Types of list
 There are two types of list:
 

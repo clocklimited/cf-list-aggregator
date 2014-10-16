@@ -408,4 +408,119 @@ describe('List aggregator (for an auto list)', function () {
       }
     )
   })
+
+  it('should allow overriding of the prepareAutoQuery function', function (done) {
+
+    var listId
+      , listService = createListService()
+      , sectionService = createSectionService()
+      , articleService = createArticleService()
+      , articles = []
+
+    async.series(
+      [ publishedArticleMaker(articleService, articles, { shortTitle: 'j' })
+      , publishedArticleMaker(articleService, articles, { shortTitle: 'a', longTitle: 'bar' })
+      , publishedArticleMaker(articleService, articles, { shortTitle: '9', longTitle: 'bar' })
+      , draftArticleMaker(articleService)
+      , publishedArticleMaker(articleService, articles, { shortTitle: '0', longTitle: 'bar'  })
+      , publishedArticleMaker(articleService, articles, { shortTitle: 'z' })
+      , draftArticleMaker(articleService)
+      , function (cb) {
+          listService.create(
+            { type: 'auto'
+            , name: 'test list'
+            , order: 'recent'
+            , limit: 3
+            }
+            , function (err, res) {
+                listId = res._id
+                cb(null)
+              })
+        }
+      ], function (err) {
+        if (err) throw err
+
+        function prepareAutoQuery() {
+          var q = { query: {}, options: {}, overrides: null }
+
+          q.query.longTitle = 'bar'
+          q.options.sort = [ [ 'shortTitle', 'asc' ] ]
+
+          return q
+        }
+
+        var options = { logger: logger, prepareAutoQuery: prepareAutoQuery }
+          , aggregate = createAggregator(listService, sectionService, articleService, options)
+
+        aggregate(listId, null, null, section, function (err, results) {
+          should.not.exist(err)
+          results.should.have.length(3)
+
+          results.forEach(function (article, i) {
+            eql(returnedArticle(
+              { _id: articles[articles.length - i - 1].articleId
+              , displayDate: article.displayDate
+              , shortTitle: articles[articles.length - i - 1].shortTitle })
+              , article, false, true)
+
+            article.longTitle.should.equal('bar')
+          })
+
+          done()
+        })
+
+      })
+  })
+
+  it('should only override prepareAutoQuery if a function', function (done) {
+    var listId
+      , listService = createListService()
+      , sectionService = createSectionService()
+      , articleService = createArticleService()
+      , articles = []
+
+    async.series(
+      [ publishedArticleMaker(articleService, articles, { shortTitle: 'j' })
+      , publishedArticleMaker(articleService, articles, { shortTitle: 'a' })
+      , publishedArticleMaker(articleService, articles, { shortTitle: '9' })
+      , draftArticleMaker(articleService)
+      , publishedArticleMaker(articleService, articles, { shortTitle: '0' })
+      , publishedArticleMaker(articleService, articles, { shortTitle: 'z' })
+      , draftArticleMaker(articleService)
+      , function (cb) {
+          listService.create(
+            { type: 'auto'
+            , name: 'test list'
+            , order: 'alphabetical'
+            , limit: 3
+            }
+            , function (err, res) {
+                listId = res._id
+                cb(null)
+              })
+        }
+      ], function (err) {
+        if (err) throw err
+
+        var options = { logger: logger, prepareAutoQuery: {} }
+          , aggregate = createAggregator(listService, sectionService, articleService, options)
+
+        aggregate(listId, null, null, section, function (err, results) {
+          should.not.exist(err)
+          results.should.have.length(3)
+
+          results.forEach(function (article, i) {
+            eql(returnedArticle(
+              { _id: articles[articles.length - i - 1].articleId
+              , displayDate: article.displayDate
+              , shortTitle: articles[articles.length - i - 1].shortTitle })
+              , article, false, true)
+
+          })
+
+          done()
+        })
+
+      })
+  })
 })
