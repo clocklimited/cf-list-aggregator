@@ -810,7 +810,7 @@ describe('List aggregator (for a manual list)', function () {
     )
   })
 
-  it.only('should allow the overriding of the prepareManualQuery function', function (done) {
+  it('should allow the overriding of the prepareManualQuery function', function (done) {
 
     var prepareManualQueryCalled = false
 
