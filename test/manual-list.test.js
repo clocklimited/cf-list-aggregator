@@ -809,4 +809,39 @@ describe('List aggregator (for a manual list)', function () {
       }
     )
   })
+
+  it.only('should allow the overriding of the prepareManualQuery function', function (done) {
+
+    var prepareManualQueryCalled = false
+
+    function prepareManualQuery() {
+      prepareManualQueryCalled = true
+      return { options: {}, query: {} }
+    }
+
+    var listService =
+          { read: function (a, cb) {
+              cb(null, { type: 'manual' })
+            }
+          }
+      , sectionService =
+          { findPublic: function (a, b, cb) {
+              cb(null, {})
+            }
+          }
+      , articleService =
+          { findPublic: function (a, b, cb) {
+              cb(null, {})
+            }
+          }
+      , aggregate = createAggregator(listService, sectionService, articleService,
+        { logger: logger, prepareManualQuery: prepareManualQuery })
+
+    aggregate(123, null, null, section, function (error) {
+      if (error) return done(error)
+      prepareManualQueryCalled.should.equal(true)
+      done()
+    })
+  })
+
 })
