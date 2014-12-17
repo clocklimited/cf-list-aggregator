@@ -8,6 +8,7 @@ var createAggregator = require('..')
   , createArticleService
   , createSectionService
   , createListService = require('./mock-list-service')
+  , customListItemMaker = require('./lib/custom-list-item-maker')
   , publishedArticleMaker = require('./lib/published-article-maker')
   , draftArticleMaker = require('./lib/draft-article-maker')
   , dbConnect = require('./lib/db-connection')
@@ -210,6 +211,67 @@ describe('List Aggregator', function () {
           aggregate(listIds, dedupe, 6, section, function (err, results) {
             should.not.exist(err)
             results.should.have.length(6)
+            done()
+          })
+        })
+      })
+  })
+
+  it('should return a limited set with deduper on a list of just custom items', function (done) {
+    var articles = []
+      , listIds = []
+      , listService = createListService()
+      , sectionService = createSectionService()
+      , articleService = createArticleService()
+
+    async.series(
+      [ customListItemMaker(articles, { 'type': 'custom' })
+      , customListItemMaker(articles, { 'type': 'custom' })
+      , customListItemMaker(articles, { 'type': 'custom' })
+      , customListItemMaker(articles, { 'type': 'custom' })
+      , customListItemMaker(articles, { 'type': 'custom' })
+      , function (cb) {
+          listService.create(
+            { type: 'manual'
+            , name: 'manual test list'
+            , articles: articles
+            , limit: 100
+            }
+            , function (err, res) {
+                listIds.push(res._id)
+                cb(null)
+              })
+        }
+      , function (cb) {
+          listService.create(
+            { type: 'auto'
+            , name: 'test list'
+            , order: 'recent'
+            , limit: 100
+            }
+            , function (err, res) {
+                listIds.push(res._id)
+                cb(null)
+              })
+        }
+
+      ], function (err) {
+        if (err) throw err
+
+        var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
+          , dedupe = createDedupe()
+
+        dedupe(articles[1].articleId)
+
+        sectionService.create(sectionFixtures.newVaildModel, function (err, section) {
+          aggregate(listIds, dedupe, 4, section, function (err, results) {
+            should.not.exist(err)
+            results.should.have.length(4)
+            results[0].type.should.equal('custom')
+            results[1].type.should.equal('custom')
+            results[2].type.should.equal('custom')
+            results[3].type.should.equal('custom')
+
             done()
           })
         })
