@@ -1,7 +1,7 @@
-var articleFixtures = require('fleet-street/test/article/fixtures')
+var itemFixtures = require('../fixtures/item')
 
 module.exports = function draftArticleMaker(articleService) {
   return function (cb) {
-    articleService.create(articleFixtures.validNewModel, cb)
+    articleService.create(itemFixtures.validNew, cb)
   }
 }

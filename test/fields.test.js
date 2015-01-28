@@ -2,28 +2,19 @@ var createAggregator = require('..')
   , async = require('async')
   , saveMongodb = require('save-mongodb')
   , should = require('should')
-  , createListService = require('./mock-list-service')
-  , createArticleService = require('./mock-list-service')
+  , createListService = require('./lib/mock-list-service')
+  , createArticleService = require('./lib/mock-list-service')
   , dbConnect = require('./lib/db-connection')
   , publishedArticleMaker = require('./lib/published-article-maker')
-  , logger = require('./null-logger')
-  , sectionFixtures = require('fleet-street/test/section/fixtures')
+  , logger = require('mc-logger')
+  , mockSection = { _id: '123' }
   , createSectionService
-  , sectionService
-  , section
   , dbConnection
 
 before(function(done) {
   dbConnect.connect(function (err, db) {
     dbConnection = db
-
-    createSectionService = require('./mock-section-service')(saveMongodb(dbConnection.collection('section')))
-
-    sectionService = createSectionService()
-    sectionService.create(sectionFixtures.newVaildModel, function (err, newSection) {
-      section = newSection
-      done()
-    })
+    done()
   })
 })
 
@@ -31,12 +22,19 @@ before(function(done) {
 after(dbConnect.disconnect)
 
 // Each test gets a new article service
+beforeEach(function () {
+  var save = saveMongodb(dbConnection.collection('section'))
+  createSectionService = require('./lib/mock-section-service')(save)
+})
+
+// Each test gets a new article service
 beforeEach(function() {
-  createArticleService = require('./mock-article-service')(
-    saveMongodb(dbConnection.collection('article' + Date.now())))
+  var save = saveMongodb(dbConnection.collection('article' + Date.now()))
+  createArticleService = require('./lib/mock-article-service')(save)
 })
 
 describe('List aggregator fields option', function () {
+
   it('should allow a fields option to be passed to define fields to return', function (done) {
     var articles = []
       , listId
@@ -59,13 +57,11 @@ describe('List aggregator fields option', function () {
               })
         }
       ], function (err) {
-        if (err) throw err
-
-        var aggregate = createAggregator(listService, sectionService, articleService,
-          { logger: logger, fields: { longTitle: 1 } })
-
-        aggregate(listId, null, null, section, function (err, results) {
-          should.not.exist(err)
+        if (err) return done(err)
+        var aggregate = createAggregator(listService, sectionService, articleService
+          , { logger: logger, fields: { headline: 1 } })
+        aggregate(listId, null, null, mockSection, function (err, results) {
+          if (err) return done(err)
           results.should.have.length(3)
           results.forEach(function (result) {
             // _id is always returned from mongo
@@ -100,13 +96,13 @@ describe('List aggregator fields option', function () {
               })
         }
       ], function (err) {
-        if (err) throw err
+        if (err) return done(err)
 
-        var aggregate = createAggregator(listService, sectionService, articleService,
-          { logger: logger, fields: ['longTitle', 'tags'] })
+        var aggregate = createAggregator(listService, sectionService, articleService
+          , { logger: logger, fields: [ 'headline', 'tags' ] })
 
-        aggregate(listId, null, null, section, function (err, results) {
-          should.not.exist(err)
+        aggregate(listId, null, null, mockSection, function (err, results) {
+          if (err) return done(err)
           results.should.have.length(3)
           results.forEach(function (result) {
             // _id is always returned from mongo
@@ -143,28 +139,14 @@ describe('List aggregator fields option', function () {
       ], function (err) {
         if (err) throw err
 
-        var aggregate = createAggregator(listService, sectionService, articleService,
-          { logger: logger })
+        var aggregate = createAggregator(listService, sectionService, articleService
+          , { logger: logger })
 
-        aggregate(listId, null, null, section, function (err, results) {
+        aggregate(listId, null, null, mockSection, function (err, results) {
           should.not.exist(err)
           results.should.have.length(1)
           results.forEach(function (result) {
-            var properties =
-              [ '_id'
-              , 'type'
-              , 'shortTitle'
-              , 'longTitle'
-              , 'standfirst'
-              , 'subTitle'
-              , 'slug'
-              , 'displayDate'
-              , 'showDisplayDate'
-              , 'tags'
-              , 'commentCount'
-              , 'viewCount'
-              , 'section'
-              ]
+            var properties = [ 'headline' ]
 
             properties.forEach(function (prop) {
               should.exist(result[prop])

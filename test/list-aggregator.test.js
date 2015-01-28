@@ -1,48 +1,42 @@
 var createAggregator = require('..')
-  , sectionFixtures = require('fleet-street/test/section/fixtures')
   , async = require('async')
   , should = require('should')
   , createDedupe = require('doorman')
-  , logger = require('./null-logger')
+  , logger = require('mc-logger')
   , saveMongodb = require('save-mongodb')
+  , mockSection = { _id: '123' }
   , createArticleService
   , createSectionService
-  , createListService = require('./mock-list-service')
+  , createListService = require('./lib/mock-list-service')
   , customListItemMaker = require('./lib/custom-list-item-maker')
   , publishedArticleMaker = require('./lib/published-article-maker')
   , draftArticleMaker = require('./lib/draft-article-maker')
   , dbConnect = require('./lib/db-connection')
+  , dbConnection
+
+before(function(done) {
+  dbConnect.connect(function (err, db) {
+    dbConnection = db
+    done()
+  })
+})
+
+// Clean up after tests
+after(dbConnect.disconnect)
+
+// Each test gets a new article service
+beforeEach(function () {
+  var save = saveMongodb(dbConnection.collection('section'))
+  createSectionService = require('./lib/mock-section-service')(save)
+})
+
+// Each test gets a new article service
+beforeEach(function() {
+  var save = saveMongodb(dbConnection.collection('article' + Date.now()))
+  createArticleService = require('./lib/mock-article-service')(save)
+})
 
 describe('List Aggregator', function () {
-
-  // Create a service and section fixture for all tests to use
-  var sectionService
-    , section
-    , dbConnection
-
-  // Create a database and service fixtures
-  before(function(done) {
-    dbConnect.connect(function (err, db) {
-      dbConnection = db
-
-      createSectionService = require('./mock-section-service')(saveMongodb(dbConnection.collection('section')))
-
-      sectionService = createSectionService()
-      sectionService.create(sectionFixtures.newVaildModel, function (err, newSection) {
-        section = newSection
-        done()
-      })
-    })
-  })
-
-  // Clean up after tests
-  after(dbConnect.disconnect)
-
-  // Each test gets a new article service
-  beforeEach(function() {
-    createArticleService = require('./mock-article-service')
-    (saveMongodb(dbConnection.collection('article' + Date.now())))
-  })
 
   describe('createAggregator()', function () {
 
@@ -58,11 +52,12 @@ describe('List Aggregator', function () {
     it('should not error when an object that isn\'t a list is passed', function (done) {
 
       var listService = createListService()
+        , sectionService = createSectionService()
         , articleService = createArticleService()
 
-      createAggregator(listService, sectionService, articleService,
-        { logger: logger })({}, null, null, section, function (err, results) {
-
+      createAggregator(listService, sectionService, articleService
+        , { logger: logger })({}, null, null, mockSection, function (err, results) {
+        if (err) return done(err)
         results.should.have.length(0)
         done()
       })
@@ -107,7 +102,7 @@ describe('List Aggregator', function () {
 
           var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
 
-          aggregate(listIds, null, null, section, function (err, results) {
+          aggregate(listIds, null, null, mockSection, function (err, results) {
             should.not.exist(err)
             results.should.have.length(5)
             done()
@@ -156,7 +151,7 @@ describe('List Aggregator', function () {
         if (err) throw err
 
         var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
-        aggregate(listIds, createDedupe(), null, section, function (err, results) {
+        aggregate(listIds, createDedupe(), null, mockSection, function (err, results) {
           should.not.exist(err)
           results.should.have.length(5)
           done()
@@ -207,7 +202,8 @@ describe('List Aggregator', function () {
 
         dedupe(articles[1].articleId)
 
-        sectionService.create(sectionFixtures.newVaildModel, function (err, section) {
+        sectionService.create({}, function (err, section) {
+          if (err) return done(err)
           aggregate(listIds, dedupe, 6, section, function (err, results) {
             should.not.exist(err)
             results.should.have.length(6)
@@ -218,23 +214,23 @@ describe('List Aggregator', function () {
   })
 
   it('should return a limited set with deduper on a list of just custom items', function (done) {
-    var articles = []
+    var listItems = []
       , listIds = []
       , listService = createListService()
       , sectionService = createSectionService()
       , articleService = createArticleService()
 
     async.series(
-      [ customListItemMaker(articles, { 'type': 'custom' })
-      , customListItemMaker(articles, { 'type': 'custom' })
-      , customListItemMaker(articles, { 'type': 'custom' })
-      , customListItemMaker(articles, { 'type': 'custom' })
-      , customListItemMaker(articles, { 'type': 'custom' })
+      [ customListItemMaker(listItems)
+      , customListItemMaker(listItems)
+      , customListItemMaker(listItems)
+      , customListItemMaker(listItems)
+      , customListItemMaker(listItems)
       , function (cb) {
           listService.create(
             { type: 'manual'
             , name: 'manual test list'
-            , articles: articles
+            , items: listItems
             , limit: 100
             }
             , function (err, res) {
@@ -261,17 +257,13 @@ describe('List Aggregator', function () {
         var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
           , dedupe = createDedupe()
 
-        dedupe(articles[1].articleId)
+        dedupe(listItems[1].properties._id)
 
-        sectionService.create(sectionFixtures.newVaildModel, function (err, section) {
+        sectionService.create({}, function (err, section) {
+          if (err) return done(err)
           aggregate(listIds, dedupe, 4, section, function (err, results) {
-            should.not.exist(err)
+            if (err) return done(err)
             results.should.have.length(4)
-            results[0].type.should.equal('custom')
-            results[1].type.should.equal('custom')
-            results[2].type.should.equal('custom')
-            results[3].type.should.equal('custom')
-
             done()
           })
         })

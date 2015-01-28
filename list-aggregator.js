@@ -1,6 +1,6 @@
 module.exports = createAggregator
 
-var _ = require('lodash')
+var unique = require('lodash.uniq')
   , async = require('async')
   , createListAggregator = require('./lib/aggregator')
   , extrapolateSectionIds = require('cf-section-extrapolator')
@@ -21,7 +21,7 @@ function createAggregator(listService, sectionService, crudService, options) {
     if (!Array.isArray(lists)) lists = [ lists ]
 
     // Don't look up the same list more than once unnecessarily
-    lists = _.uniq(lists)
+    lists = unique(lists)
 
     /*
      * Looks up a list by id, and collects the article content for it
@@ -70,7 +70,7 @@ function createAggregator(listService, sectionService, crudService, options) {
 
       // Make sure that each article in the list is unique. Custom items are always unique.
       var i = 0
-      articles = _.uniq(articles, function (article) {
+      articles = unique(articles, function (article) {
         return (article.type === 'custom' || typeof article._id === 'undefined') ? i++ : article._id
       })
 

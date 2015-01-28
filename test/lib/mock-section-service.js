@@ -1,7 +1,7 @@
 var save = require('save')
   , schemata = require('schemata')
   , crudService = require('crud-service')
-  , logger = require('./null-logger')
+  , logger = require('mc-logger')
   , schema = schemata(
     { _id:
       { type: String

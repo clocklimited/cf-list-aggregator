@@ -1,4 +1,4 @@
-var _ = require('lodash')
+var extend = require('lodash.assign')
 
 module.exports = createListService
 
@@ -13,8 +13,7 @@ function createListService() {
     , create: function (list, cb) {
         var _id = '_' + id++
         lists[_id] = list
-        cb(null, _.extend({ _id: _id }, list))
+        cb(null, extend({ _id: _id }, list))
       }
-    }
-  )
+    })
 }
