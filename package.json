@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "async": "~0.2.9",
-    "cf-section-extrapolator": "0.0.1",
+    "cf-section-extrapolator": "^1.0.0",
     "cf-visibility-check": "~0",
     "lodash": "~2.2.1"
   },
