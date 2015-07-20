@@ -2,7 +2,7 @@
   "author": "Paul Serby <paul.serby@clock.co.uk>",
   "name": "cf-list-aggregator",
   "description": "Compiles lists of content base on defined filtering and ordering",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "tags": [],
   "repository": {
     "type": "git",
