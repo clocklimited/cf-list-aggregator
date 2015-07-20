@@ -36,7 +36,7 @@ function createAggregator(listService, sectionService, crudService, options) {
 
         var opts = {}
 
-        if (options.ensurePublic) {
+        if (options.hasOwnProperty('ensurePublic')) {
           opts.ensurePublic = options.ensurePublic
         }
 
