@@ -34,7 +34,13 @@ function createAggregator(listService, sectionService, crudService, options) {
 
         if (!Array.isArray(list.sections)) list.sections = []
 
-        extrapolateSectionIds(sectionService, section._id, list.sections, function (err, ids) {
+        var opts = {}
+
+        if (options.hasOwnProperty('ensurePublic')) {
+          opts.ensurePublic = options.ensurePublic
+        }
+
+        extrapolateSectionIds(sectionService, section._id, list.sections, opts, function (err, ids) {
 
           if (err) return cb(err)
 
