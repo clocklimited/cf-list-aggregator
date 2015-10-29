@@ -1,23 +1,6 @@
 # cf-list-aggregator
 
-Compiles lists of content base on defined filtering and ordering.
-
-**Notice:** at version 1.0.0 the format for `list.sections` changed to account for functionality
-to include sub-sections. Pre v1.0.0 the format was:
-
-```js
-list.sections = [ 'id1', 'id2', 'id3' ]
-```
-
-This has changed to:
-
-```js
-list.sections =
-  [ { id: 'id1', includeSubSections: true }
-  , { id: 'id2', includeSubSections: false }
-  , { id: 'id3', includeSubSections: true }
-  ]
-```
+Aggregates content from lists.
 
 ## Installation
 
@@ -27,11 +10,89 @@ list.sections =
 
 ```js
 var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
-
 aggregate(listId, dedupe, limit, section, function (err, results) {})
 ```
 
+## Types of list
+There are two types of list:
+
+### 1. Automatic
+
+Automatic lists are used to auto-generate list content based on a number of properties:
+
+- tags
+- sections
+
+For example (some properties omitted for brevity):
+
+```js
+// This list will get all content with the Location tag "London"
+{ type: 'auto'
+, tags: [ { type: 'Location', tag: 'London' } ]
+}
+```
+
+```js
+// Assuming the section "Reviews" has ID=123 and "Guides" has ID=456, this list
+// will get all content from "Reviews", including any sub-sections and all content
+// from "Guides", but nothing from "Guides" > "Premium".
+{ type: 'auto'
+, sections:
+  [ { id: '123', includeSubSections: true }
+  , { id: '456', includeSubSections: false }
+  ]
+}
+```
+
+### 2. Manual
+
+Manual lists are lists where the contents are hand picked. The list object differs
+from the automatic list in that the contents are described in the `items` array property.
+
+```js
+{ type: 'manual'
+, items: []
+}
+```
+
+## Specifying manual list content
+
+The most common and basic way to define a piece of manual list content is to
+provide the id of an item that exists in the `crudService` provided:
+
+```js
+{ type: 'manual'
+, items: [ { itemId: '123' }, isCustom: false, overrides: {} ]
+}
+```
+
+### Overriding item properties
+
+Sometimes the item appearing in a list will need a slight modification for the context in
+which it will be used, perhaps a snappier title or a more appropriate image. In order to achieve
+this, the `overrides` property is used.
+
+```js
+// The item ID=123 look like this:
+{ _id: '123', title: 'Top 10 List Aggregation Modules' /* etc… */ }
+// In order to select this item but give it a different image…
+{ itemId: '123', isCustom: false, overrides: { image: 'http://diff.img/123' } }
+```
+
+All of the original item's content will be retrieved from the `crudService` and then the
+overrides will be applied.
+
+## Inserting custom items
+
+Sometimes it is useful to inject an item that doesn't exist in the `crudService`. To do this,
+the item format is like so:
+
+```js
+{ isCustom: true, properties: { title: 'A Custom Item', image: 'http://notinthe.db' /* etc… */ } }
+```
+
 ### Date based previewing
+
 To create a list aggregator which allows searching from any date perspective, pass a `date` parameter into the options object like so:
 
 ```js
@@ -41,9 +102,11 @@ var aggregate = createAggregator(listService, sectionService, articleService, { 
 This aggregator instance now performs all operations based on this date.
 
 ### Specifying fields to return
+
 To specify fields to return from the query, use the `fields` option. This field can either be an object or an array - mongo is tolerant of either.
 
-An object can be like so:
+The default list is pretty minimal: `[ "_id", "headline" ]` so you will want to pass in the desired list every time. It is important to
+only specify the properties needed in order to minimise unnecessary database traffic.
 
 ```js
   fields: { longTitle: 1, tags: 1 }
@@ -80,97 +143,35 @@ function prepareManualQuery(list, IdType) {
 }
 ```
 
-## Types of list
-There are two types of list:
 
-### 1. Automatic
-Automatic lists are used to auto-generate list content based on a number of properties:
+## Changlog
 
-- tags
-- sections
-- articletypes
-- articleSubTypes
+### v.2.0.0
 
-They can be sorted by:
+- The schema for lists that this module consumes is now totally different and not backwards compatible.
+- `crudService.idType` is no longer required to be passed in. Make sure the version of `save-mongodb`
+in your application is `>=0.0.12` so that it will properly reach into the `_id: { $in: [] }` query
+and conver to the appropriate id type.
 
-- recent
-- most comments
-- popular
-- alphabetical
+### v1.0.0
 
-### 2. Manual
-Manual lists are specific lists of articles or content.
-
-## Types of list content
-There are three types of content that can be present in a list:
-
-**Warning: some fields below are omitted for brevity**
-
-### 1. Article
-This is a standard article, obtained directly from the article collection.
-These can be present in both automatic and manual lists.
-They are stored in the list entity under the `articles` array like so:
+- The format for `list.sections` changed to account for functionality to include
+sub-sections. Previously the format was:
 
 ```js
-"articles" : [
-    {
-      "articleId" : "52551b0bd50e51ce03000002",
-      "type" : "offer"
-    },
-    {
-      "articleId" : "51ed3d294ca3ce512f00000a",
-      "type" : "offer"
-    }
+list.sections = [ 'id1', 'id2', 'id3' ]
+```
+
+This has changed to:
+
+```js
+list.sections =
+  [ { id: 'id1', includeSubSections: true }
+  , { id: 'id2', includeSubSections: false }
+  , { id: 'id3', includeSubSections: true }
   ]
 ```
 
-### 2. Overridden article
-This is a standard article with some fields overridden.
-For example if an article title was "My amazing article", but you wanted it to appear in a list with the title "Click to see my amazing title".
-
-These fields are also stored in the articles array alongside normal articles like so:
-
-```js
-"articles" : [
-    {
-      "articleId" : "52551b0bd50e51ce03000002",
-      "type" : "offer"
-    },
-    {
-      "articleId" : "51ed3d294ca3ce512f00000a",
-      "shortTitle" : "New overridden title",
-      "type" : "offer",
-      "customId": null
-    }
-  ]
-```
-
-They are differentiated from custom articles by having a `customId` value of `null` and an `articleId` relating to an actual article.
-
-Date fields (`liveDate` and `expiryDate`) can also be overridden to effect the articles visibility within a list.
-This does not affect an article's visibility anywhere but this list.
-
-### 3. Custom item
-Custom items are pieces of content which have no related article.
-They can be used to put arbitrary data within a list.
-They also appear in the articles array like so:
-
-```js
-"articles" : [
-    {
-      "articleId" : "52551b0bd50e51ce03000002",
-      "type" : "offer"
-    },
-    {
-      "articleId" : null,
-      "shortTitle" : "asddsa",
-      "type" : "custom",
-      "customId" : 1
-    }
-  ]
-```
-
-They always have a `customId` integer, an `articleId` of `null` and a `type` of `custom` to differentiate from overridden articles.
 
 ## Credits
 [Paul Serby](https://github.com/serby/) follow me on twitter [@serby](http://twitter.com/serby)
