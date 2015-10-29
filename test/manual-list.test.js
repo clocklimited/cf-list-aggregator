@@ -18,8 +18,9 @@ var createAggregator = require('..')
   , createArticleService
   , createSectionService
 
-before(function(done) {
+before(function (done) {
   dbConnect.connect(function (err, db) {
+    if (err) return done(err)
     dbConnection = db
     done()
   })
@@ -35,7 +36,7 @@ beforeEach(function () {
 })
 
 // Each test gets a new article service
-beforeEach(function() {
+beforeEach(function () {
   var save = saveMongodb(dbConnection.collection('article' + Date.now()))
   createArticleService = require('./lib/mock-article-service')(save)
 })
@@ -70,8 +71,9 @@ describe('List aggregator (for a manual list)', function () {
         if (err) return done(err)
         var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
         aggregate(listId, null, null, mockSection, function (err, results) {
+          if (err) return done(err)
           results.should.have.length(5)
-          function getId(item) { return item._id }
+          function getId (item) { return item._id }
           assert.deepEqual(articles.map(getId), results.map(getId))
           done()
         })
@@ -99,6 +101,7 @@ describe('List aggregator (for a manual list)', function () {
               , limit: 100
               }
             , function (err, res) {
+                if (err) return cb(err)
                 listId = res._id
                 cb(null)
               })
@@ -107,8 +110,9 @@ describe('List aggregator (for a manual list)', function () {
         if (err) return done(err)
         var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
         aggregate(listId, null, null, mockSection, function (err, results) {
+          if (err) return done(err)
           results.should.have.length(3)
-          function getId(item) { return item._id }
+          function getId (item) { return item._id }
           assert.deepEqual(articles.map(getId), results.map(getId))
           done()
         })
@@ -138,6 +142,7 @@ describe('List aggregator (for a manual list)', function () {
               , limit: 2
               }
             , function (err, res) {
+                if (err) return cb(err)
                 listId = res._id
                 cb(null)
               })
@@ -146,8 +151,9 @@ describe('List aggregator (for a manual list)', function () {
         if (err) return done(err)
         var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
         aggregate(listId, null, null, mockSection, function (err, results) {
+          if (err) return done(err)
           results.should.have.length(2)
-          function getId(item) { return item._id }
+          function getId (item) { return item._id }
           assert.deepEqual(articles.map(getId).slice(0, 2), results.map(getId))
           done()
         })
@@ -179,6 +185,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 100
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listId = res._id
                 cb(null)
               })
@@ -190,12 +197,12 @@ describe('List aggregator (for a manual list)', function () {
           if (err) return done(err)
           results.should.have.length(3)
 
-          function applyOverrides(item) {
+          function applyOverrides (item) {
             var o = extend(item, overrides)
             return { _id: o._id, headline: o.headline }
           }
 
-          function processResults(item) {
+          function processResults (item) {
             return { _id: item._id, headline: item.headline }
           }
 
@@ -230,6 +237,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 100
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb(null)
             })
@@ -278,6 +286,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 100
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb(null)
             })
@@ -413,6 +422,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 100
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb(null)
             })
@@ -422,6 +432,7 @@ describe('List aggregator (for a manual list)', function () {
         if (err) return done(err)
         var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
         aggregate(listId, null, null, mockSection, function (err, results) {
+          if (err) return done(err)
           results.length.should.equal(2)
           done()
         })
@@ -451,6 +462,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 100
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb(null)
             }
@@ -495,6 +507,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 100
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb(null)
             }
@@ -535,6 +548,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 1
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb(null)
             })
@@ -573,6 +587,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 100
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb()
             })
@@ -608,10 +623,11 @@ describe('List aggregator (for a manual list)', function () {
           listService.create(
             { type: 'manual'
             , name: 'test list'
-            , items: listItems.map(function (item) { return { isCustom: false, itemId: item._id }})
+            , items: listItems.map(function (item) { return { isCustom: false, itemId: item._id } })
             , limit: 100
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb()
             })
@@ -656,6 +672,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 100
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb()
             })
@@ -707,6 +724,7 @@ describe('List aggregator (for a manual list)', function () {
             , limit: 100
             }
           , function (err, res) {
+              if (err) return cb(err)
               listId = res._id
               cb(null)
             })
@@ -727,14 +745,13 @@ describe('List aggregator (for a manual list)', function () {
 
   it('should allow the overriding of the prepareManualQuery function', function (done) {
 
-    var prepareManualQueryCalled = false
-
-    function prepareManualQuery() {
+    function prepareManualQuery () {
       prepareManualQueryCalled = true
       return { options: {}, query: {} }
     }
 
-    var listService =
+    var prepareManualQueryCalled = false
+      , listService =
           { read: function (a, cb) {
               cb(null, { type: 'manual', items: [] })
             }

@@ -2,9 +2,9 @@ var extend = require('lodash.assign')
 
 module.exports = createListService
 
-function createListService() {
+function createListService () {
   var lists = {}
-    ,  id = 0
+    , id = 0
 
   return (
     { read: function (id, cb) {

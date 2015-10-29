@@ -5,14 +5,14 @@ var unique = require('lodash.uniq')
   , createListAggregator = require('./lib/aggregator')
   , extrapolateSectionIds = require('cf-section-extrapolator')
 
-function createAggregator(listService, sectionService, crudService, options) {
+function createAggregator (listService, sectionService, crudService, options) {
 
   var aggregateList = createListAggregator(crudService, options)
 
   /*
    * Runs the list aggregator over a number of lists
    */
-  function aggregateLists(lists, dedupe, limit, section, cb) {
+  function aggregateLists (lists, dedupe, limit, section, cb) {
 
     // Make sure 'no limit' will work with comparison operators
     if (typeof limit !== 'number') limit = Infinity
@@ -26,7 +26,7 @@ function createAggregator(listService, sectionService, crudService, options) {
     /*
      * Looks up a list by id, and collects the article content for it
      */
-    function aggregateEach(listId, cb) {
+    function aggregateEach (listId, cb) {
       listService.read(listId, function (err, list) {
 
         if (err) return cb(err)
@@ -41,10 +41,7 @@ function createAggregator(listService, sectionService, crudService, options) {
           // Swap out list.sections for the list of actual section ids
           list.sections = ids
 
-          aggregateList(list, function (err, listArticles) {
-            if (err) return cb(err)
-            cb(null, listArticles)
-          })
+          aggregateList(list, cb)
 
         })
 
@@ -55,7 +52,7 @@ function createAggregator(listService, sectionService, crudService, options) {
      * Flatten list aggregations into a 1D array of articles
      * (aggregations is an array of arrays).
      */
-    function flattenAggregations(aggregations) {
+    function flattenAggregations (aggregations) {
       var articles = []
       aggregations.forEach(function (result) {
         articles = articles.concat(result)
@@ -66,15 +63,15 @@ function createAggregator(listService, sectionService, crudService, options) {
     /*
      * Dedupes and array of articles with or without a deduper provided
      */
-    function dedupeResults(articles, cb) {
+    function dedupeResults (articles, cb) {
 
       // Make sure that each article in the list is unique. Custom items are always unique.
       var i = 0
+        , deduped
+
       articles = unique(articles, function (article) {
         return (article.type === 'custom' || typeof article._id === 'undefined') ? i++ : article._id
       })
-
-      var deduped
 
       if (dedupe) {
         // If a deduper has been passed, use it
@@ -98,10 +95,7 @@ function createAggregator(listService, sectionService, crudService, options) {
     // each, then dedupe the results and callback
     async.map(lists, aggregateEach, function (err, results) {
       if (err) return cb(err)
-      dedupeResults(flattenAggregations(results), function (err, articles) {
-        if (err) return cb(err)
-        cb(null, articles)
-      })
+      dedupeResults(flattenAggregations(results), cb)
     })
 
   }

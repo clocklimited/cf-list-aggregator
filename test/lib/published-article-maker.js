@@ -10,7 +10,7 @@ module.exports.createArticles = function (i, articleService, articles, custom) {
   }
 }
 
-function publishedArticleMaker(articleService, articles, custom) {
+function publishedArticleMaker (articleService, articles, custom) {
 
   return function (n, cb) {
     if (!cb) cb = n

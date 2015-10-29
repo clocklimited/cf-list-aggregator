@@ -12,7 +12,7 @@ var save = require('save')
       }
     })
 
-module.exports = function(saveEngine) {
+module.exports = function (saveEngine) {
   return function () {
     var sectionSave = save('section', { engine: saveEngine, debug: false, logger: logger })
     , service = crudService('section', sectionSave, schema)

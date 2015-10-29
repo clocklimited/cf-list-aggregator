@@ -4,7 +4,7 @@ var extend = require('lodash.assign')
   , logger = require('mc-logger')
   , createItemSchema = require('./item-schema')
 
-function createPublicQuery(query, options) {
+function createPublicQuery (query, options) {
 
   var now = options && options.date ? options.date : new Date()
     , publicQuery = extend({}, query
@@ -21,7 +21,7 @@ function createPublicQuery(query, options) {
 
 }
 
-module.exports = function(saveEngine) {
+module.exports = function (saveEngine) {
   return function () {
     // Create a unique name for the memgo engine so it always starts empty.
     var articleSave = save('article', { engine: saveEngine, debug: false, logger: logger })

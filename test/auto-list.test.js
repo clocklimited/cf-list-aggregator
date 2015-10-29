@@ -15,8 +15,9 @@ var createAggregator = require('..')
   , createSectionService
   , dbConnection
 
-before(function(done) {
+before(function (done) {
   dbConnect.connect(function (err, db) {
+    if (err) return done(err)
     dbConnection = db
     done()
   })
@@ -32,7 +33,7 @@ beforeEach(function () {
 })
 
 // Each test gets a new article service
-beforeEach(function() {
+beforeEach(function () {
   var save = saveMongodb(dbConnection.collection('article' + Date.now()))
   createArticleService = require('./lib/mock-article-service')(save)
 })
@@ -77,7 +78,7 @@ describe('List aggregator (for an auto list)', function () {
         aggregate(listId, null, null, mockSection, function (err, results) {
           should.not.exist(err)
           results.should.have.length(3)
-          function getId(item) { return item._id }
+          function getId (item) { return item._id }
           assert.deepEqual(articles.map(getId).sort(), results.map(getId).sort())
           done()
         })
@@ -123,7 +124,7 @@ describe('List aggregator (for an auto list)', function () {
             aggregate(listId, null, null, mockSection, function (err, results) {
               should.not.exist(err)
               results.should.have.length(4)
-              function getId(item) { return item._id }
+              function getId (item) { return item._id }
               assert.deepEqual(articles.map(getId).sort(), results.map(getId).sort())
               done()
             })
@@ -168,7 +169,7 @@ describe('List aggregator (for an auto list)', function () {
         aggregate(listId, null, null, mockSection, function (err, results) {
           should.not.exist(err)
           results.should.have.length(5)
-          function getId(item) { return item._id }
+          function getId (item) { return item._id }
           assert.deepEqual(articles.map(getId).reverse(), results.map(getId))
           done()
         })
@@ -194,6 +195,7 @@ describe('List aggregator (for an auto list)', function () {
             , limit: 3
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listId = res._id
                 cb(null)
               })
@@ -262,7 +264,7 @@ describe('List aggregator (for an auto list)', function () {
       , publishedArticleMaker(articleService, articles, { headline: 'bar' })
       , publishedArticleMaker(articleService, articles, { headline: 'bar' })
       , draftArticleMaker(articleService)
-      , publishedArticleMaker(articleService, articles, { headline: 'bar'  })
+      , publishedArticleMaker(articleService, articles, { headline: 'bar' })
       , publishedArticleMaker(articleService, articles)
       , draftArticleMaker(articleService)
       , function (cb) {
@@ -273,6 +275,7 @@ describe('List aggregator (for an auto list)', function () {
             , limit: 3
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listId = res._id
                 cb(null)
               })
@@ -281,7 +284,7 @@ describe('List aggregator (for an auto list)', function () {
 
         if (err) throw err
 
-        function prepareAutoQuery() {
+        function prepareAutoQuery () {
           var q = { query: {}, options: {}, overrides: null }
           q.query.headline = 'bar'
           q.options.sort = [ [ 'headline', 'asc' ] ]
@@ -294,7 +297,7 @@ describe('List aggregator (for an auto list)', function () {
         aggregate(listId, null, null, mockSection, function (err, results) {
           should.not.exist(err)
           results.should.have.length(3)
-          results.forEach(function (article) {article.headline.should.equal('bar') })
+          results.forEach(function (article) { article.headline.should.equal('bar') })
           done()
         })
 
@@ -324,6 +327,7 @@ describe('List aggregator (for an auto list)', function () {
             , limit: 3
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listId = res._id
                 cb(null)
               })

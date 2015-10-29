@@ -14,8 +14,9 @@ var createAggregator = require('..')
   , dbConnect = require('./lib/db-connection')
   , dbConnection
 
-before(function(done) {
+before(function (done) {
   dbConnect.connect(function (err, db) {
+    if (err) return done(err)
     dbConnection = db
     done()
   })
@@ -31,7 +32,7 @@ beforeEach(function () {
 })
 
 // Each test gets a new article service
-beforeEach(function() {
+beforeEach(function () {
   var save = saveMongodb(dbConnection.collection('article' + Date.now()))
   createArticleService = require('./lib/mock-article-service')(save)
 })
@@ -81,6 +82,7 @@ describe('List Aggregator', function () {
               , limit: 100
               }
               , function (err, res) {
+                  if (err) return cb(err)
                   listIds.push(res._id)
                   cb(null)
                 })
@@ -93,6 +95,7 @@ describe('List Aggregator', function () {
               , limit: 100
               }
               , function (err, res) {
+                  if (err) return cb(err)
                   listIds.push(res._id)
                   cb(null)
                 })
@@ -131,6 +134,7 @@ describe('List Aggregator', function () {
             , limit: 100
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listIds.push(res._id)
                 cb(null)
               })
@@ -143,6 +147,7 @@ describe('List Aggregator', function () {
             , limit: 100
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listIds.push(res._id)
                 cb(null)
               })
@@ -178,6 +183,7 @@ describe('List Aggregator', function () {
             , limit: 2
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listIds.push(res._id)
                 cb(null)
               })
@@ -190,6 +196,7 @@ describe('List Aggregator', function () {
             , limit: 100
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listIds.push(res._id)
                 cb(null)
               })
@@ -234,6 +241,7 @@ describe('List Aggregator', function () {
             , limit: 100
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listIds.push(res._id)
                 cb(null)
               })
@@ -246,6 +254,7 @@ describe('List Aggregator', function () {
             , limit: 100
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listIds.push(res._id)
                 cb(null)
               })

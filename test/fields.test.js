@@ -11,8 +11,9 @@ var createAggregator = require('..')
   , createSectionService
   , dbConnection
 
-before(function(done) {
+before(function (done) {
   dbConnect.connect(function (err, db) {
+    if (err) return done(err)
     dbConnection = db
     done()
   })
@@ -28,7 +29,7 @@ beforeEach(function () {
 })
 
 // Each test gets a new article service
-beforeEach(function() {
+beforeEach(function () {
   var save = saveMongodb(dbConnection.collection('article' + Date.now()))
   createArticleService = require('./lib/mock-article-service')(save)
 })
@@ -52,6 +53,7 @@ describe('List aggregator fields option', function () {
             , limit: 100
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listId = res._id
                 cb(null)
               })
@@ -91,6 +93,7 @@ describe('List aggregator fields option', function () {
             , limit: 100
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listId = res._id
                 cb(null)
               })
@@ -132,6 +135,7 @@ describe('List aggregator fields option', function () {
             , limit: 100
             }
             , function (err, res) {
+                if (err) return cb(err)
                 listId = res._id
                 cb(null)
               })
