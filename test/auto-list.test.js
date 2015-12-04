@@ -409,6 +409,41 @@ describe('List aggregator (for an auto list)', function () {
     )
   })
 
+  it('should ignore any specific list items', function (done) {
+
+    var listId
+      , listService = createListService()
+      , sectionService = createSectionService()
+      , articleService = createArticleService()
+
+    async.series(
+      [ publishedArticleMaker.createArticles(5, articleService, [])
+      , draftArticleMaker(articleService)
+      , function (cb) {
+          listService.create(
+            { type: 'auto'
+            , name: 'test list'
+            , order: 'recent'
+            , items: [ { itemId: 'abc123', isCustom: false } ]
+            , limit: 3
+            }
+            , function (err, res) {
+                if (err) return cb(err)
+                listId = res._id
+                cb(null)
+              })
+        }
+      ], function (err) {
+        if (err) return done(err)
+        var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
+        aggregate(listId, null, null, section, function (err, results) {
+          should.not.exist(err)
+          results.should.have.length(3)
+          done()
+        })
+      })
+  })
+
   it('should allow overriding of the prepareAutoQuery function', function (done) {
 
     var listId

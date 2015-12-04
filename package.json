@@ -31,7 +31,7 @@
   "devDependencies": {
     "crud-service": "0.0.5",
     "doorman": "0.0.2",
-    "fleet-street": "git+ssh://git@github.com:clocklimited/fleet-street.git#a08627b4798fd77c5a2725c39cccb77d38a02427",
+    "fleet-street": "git+ssh://git@github.com:clocklimited/fleet-street.git#9f09b71e8ebc9d65c4ceb29c9447283ff520ecdb",
     "istanbul": "~0.1.44",
     "jshint": "~2.3.0",
     "jshint-full-path": "~0.1.0",
