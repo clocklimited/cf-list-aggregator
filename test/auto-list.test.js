@@ -409,7 +409,7 @@ describe('List aggregator (for an auto list)', function () {
     )
   })
 
-  it('should ignore any specific list items', function (done) {
+  it('should not include any manual list items that are present on the list in the aggregation', function (done) {
 
     var listId
       , listService = createListService()
@@ -424,7 +424,7 @@ describe('List aggregator (for an auto list)', function () {
             { type: 'auto'
             , name: 'test list'
             , order: 'recent'
-            , items: [ { itemId: 'abc123', isCustom: false } ]
+            , articles: [ { itemId: 'abc123', isCustom: false } ]
             , limit: 3
             }
             , function (err, res) {
@@ -438,7 +438,7 @@ describe('List aggregator (for an auto list)', function () {
         var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger })
         aggregate(listId, null, null, section, function (err, results) {
           should.not.exist(err)
-          results.should.have.length(3)
+          results.should.have.length(3, 'Manual list items were pulled in by the aggregation')
           done()
         })
       })
