@@ -1,5 +1,8 @@
 # cf-list-aggregator
 
+
+[![build status](https://api.travis-ci.org/clocklimited/cf-list-aggregator.svg)](http://travis-ci.org/clocklimited/cf-list-aggregator) [![Dependences](https://david-dm.org/clocklimited/cf-list-aggregator.svg)](https://david-dm.org/clocklimited/cf-list-aggregator/) [![Join the chat at https://gitter.im/clocklimited/cf-list-aggregator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/clocklimited/cf-list-aggregator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Compiles lists of content base on defined filtering and ordering.
 
 **Notice:** at version 1.0.0 the format for `list.sections` changed to account for functionality
