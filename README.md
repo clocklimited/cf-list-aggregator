@@ -1,5 +1,7 @@
 # cf-list-aggregator
 
+[![build status](https://api.travis-ci.org/clocklimited/cf-list-aggregator.svg)](http://travis-ci.org/clocklimited/cf-list-aggregator) [![Dependences](https://david-dm.org/clocklimited/cf-list-aggregator.svg)](https://david-dm.org/clocklimited/cf-list-aggregator/) [![Join the chat at https://gitter.im/clocklimited/cf-list-aggregator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/clocklimited/cf-list-aggregator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Aggregates content from lists.
 
 ## Installation
