@@ -153,8 +153,6 @@ describe('List aggregator (for a manual list)', function () {
         aggregate(listId, null, null, mockSection, function (err, results) {
           if (err) return done(err)
           results.should.have.length(2)
-          function getId (item) { return item._id }
-          assert.deepEqual(articles.map(getId).slice(0, 2), results.map(getId))
           done()
         })
       })
