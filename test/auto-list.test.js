@@ -15,30 +15,30 @@ var createAggregator = require('..')
   , createSectionService
   , dbConnection
 
-before(function (done) {
-  dbConnect.connect(function (err, db) {
-    if (err) return done(err)
-    dbConnection = db
-    done()
-  })
-})
-
-// Clean up after tests
-after(dbConnect.disconnect)
-
-// Each test gets a new article service
-beforeEach(function () {
-  var save = saveMongodb(dbConnection.collection('section'))
-  createSectionService = require('./lib/mock-section-service')(save)
-})
-
-// Each test gets a new article service
-beforeEach(function () {
-  var save = saveMongodb(dbConnection.collection('article' + Date.now()))
-  createArticleService = require('./lib/mock-article-service')(save)
-})
-
 describe('List aggregator (for an auto list)', function () {
+
+  before(function (done) {
+    dbConnect.connect(function (err, db) {
+      if (err) return done(err)
+      dbConnection = db
+      done()
+    })
+  })
+
+  // Clean up after tests
+  after(dbConnect.disconnect)
+
+  // Each test gets a new article service
+  beforeEach(function () {
+    var save = saveMongodb(dbConnection.collection('section'))
+    createSectionService = require('./lib/mock-section-service')(save)
+  })
+
+  // Each test gets a new article service
+  beforeEach(function () {
+    var save = saveMongodb(dbConnection.collection('article' + Date.now()))
+    createArticleService = require('./lib/mock-article-service')(save)
+  })
 
   it('should return articles whose tags match those of the list', function (done) {
 
@@ -348,11 +348,56 @@ describe('List aggregator (for an auto list)', function () {
 
     async.series(
       [ publishedArticleMaker(articleService, articles, { headline: 'j' })
+      , publishedArticleMaker(articleService, articles, { headline: 'z' })
       , publishedArticleMaker(articleService, articles, { headline: 'a' })
       , publishedArticleMaker(articleService, articles, { headline: '9' })
       , draftArticleMaker(articleService)
       , publishedArticleMaker(articleService, articles, { headline: '0' })
+      , draftArticleMaker(articleService)
+      , function (cb) {
+          listService.create(
+            { type: 'auto'
+            , name: 'test list'
+            , order: 'alphabetical'
+            , limit: 4
+            }
+            , function (err, res) {
+                if (err) return cb(err)
+                listId = res._id
+                cb(null)
+              })
+        }
+      ], function (err) {
+
+        if (err) return done(err)
+
+        var options = { logger: logger, prepareAutoQuery: {} }
+          , aggregate = createAggregator(listService, sectionService, articleService, options)
+
+        aggregate(listId, null, null, mockSection, function (err, results) {
+          should.not.exist(err)
+          results.should.have.length(4)
+          assert.deepEqual(results.map(function (article) { return article.headline }), [ '0', '9', 'a', 'j' ])
+          done()
+        })
+
+      })
+  })
+
+  it('should only add extra additionalAutoQuery', function (done) {
+    var listId
+      , listService = createListService()
+      , sectionService = createSectionService()
+      , articleService = createArticleService()
+      , articles = []
+
+    async.series(
+      [ publishedArticleMaker(articleService, articles, { headline: 'j' })
       , publishedArticleMaker(articleService, articles, { headline: 'z' })
+      , publishedArticleMaker(articleService, articles, { headline: 'a' })
+      , publishedArticleMaker(articleService, articles, { headline: '9' })
+      , draftArticleMaker(articleService)
+      , publishedArticleMaker(articleService, articles, { headline: '0' })
       , draftArticleMaker(articleService)
       , function (cb) {
           listService.create(
@@ -370,16 +415,20 @@ describe('List aggregator (for an auto list)', function () {
       ], function (err) {
 
         if (err) return done(err)
-
-        var options = { logger: logger, prepareAutoQuery: {} }
+        function additionalAutoQuery () {
+          return function (q) {
+            q.query.headline = { $in: [ '9', 'a' ] }
+            return q
+          }
+        }
+        var options = { logger: logger, additionalAutoQuery: additionalAutoQuery }
           , aggregate = createAggregator(listService, sectionService, articleService, options)
 
         aggregate(listId, null, null, mockSection, function (err, results) {
           should.not.exist(err)
-          results.should.have.length(3)
-          results.forEach(function (article, i) {
-            assert.equal(articles[i].headline, article.headline)
-          })
+          results.should.have.length(2)
+          assert.equal(results[0].headline, '9')
+          assert.equal(results[1].headline, 'a')
           done()
         })
 

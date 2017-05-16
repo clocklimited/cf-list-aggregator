@@ -122,6 +122,23 @@ Example:
 var aggregate = createAggregator(listService, sectionService, articleService, { logger: logger, fields: { longTitle: 1 } })
 ```
 
+### Extending Query or Sort
+
+If you need to add additional query or sorting to the default query you can pass `additionalAutoQuery` in options.
+
+`additionalAutoQuery` is a function that is given the `list` and returns a function that takes `{ query: {}, options: {} }`
+e.g
+
+```
+function additionalAutoQuery(list) {
+  return function (q) {
+    q.query.headline = 'News Flash'
+    q.options.sort = { headline: -1 }
+    return q
+  }
+}
+```
+
 ### Overriding prepareAutoQuery and prepareManualQuery
 
 If your application needs to modify the queries that the list aggregator makes (need a custom sort function for automatic lists? override prepareAutoQuery) then override these functions.
