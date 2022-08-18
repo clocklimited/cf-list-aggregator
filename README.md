@@ -1,5 +1,7 @@
 # cf-list-aggregator
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/clocklimited/cf-list-aggregator.svg)](https://greenkeeper.io/)
+
 Aggregates content from lists.
 
 ## Installation
